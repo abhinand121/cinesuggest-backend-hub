@@ -1,0 +1,7 @@
+project_id = "khkwbmckzdykmketvkvm"
+
+[functions.verify-ticket]
+verify_jwt = false
+
+[functions.create-guest-user]
+verify_jwt = false
