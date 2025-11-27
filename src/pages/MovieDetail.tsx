@@ -3,16 +3,21 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ReviewForm } from "@/components/ReviewForm";
+import { ReviewList } from "@/components/ReviewList";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useGuestUser } from "@/hooks/useGuestUser";
 import { Loader2 } from "lucide-react";
 
 const MovieDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { guestUserId, loading: guestLoading } = useGuestUser();
   const [movie, setMovie] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshReviews, setRefreshReviews] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -57,7 +62,12 @@ const MovieDetail = () => {
     }
   };
 
-  if (loading) {
+  const handleReviewSubmitted = () => {
+    fetchMovie();
+    setRefreshReviews((prev) => prev + 1);
+  };
+
+  if (loading || guestLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -65,7 +75,7 @@ const MovieDetail = () => {
     );
   }
 
-  if (!movie) return null;
+  if (!movie || !guestUserId) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,7 +89,7 @@ const MovieDetail = () => {
           Back to Movies
         </Button>
 
-        <div className="grid md:grid-cols-[300px_1fr] gap-8">
+        <div className="grid md:grid-cols-[300px_1fr] gap-8 mb-12">
           <div className="space-y-4">
             <div className="aspect-[2/3] overflow-hidden rounded-[var(--radius)] border border-border/50">
               <img
@@ -132,11 +142,26 @@ const MovieDetail = () => {
                 <p className="text-muted-foreground leading-relaxed">{movie.description}</p>
               </div>
             )}
+          </div>
+        </div>
 
-            <div className="pt-6">
-              <h2 className="text-2xl font-bold mb-6 text-foreground">Reviews</h2>
-              <p className="text-muted-foreground">Review system coming soon...</p>
-            </div>
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-2xl font-bold mb-6 text-foreground">Write a Review</h2>
+            <ReviewForm
+              movieId={movie.id}
+              guestUserId={guestUserId}
+              onReviewSubmitted={handleReviewSubmitted}
+            />
+          </div>
+
+          <div>
+            <h2 className="text-2xl font-bold mb-6 text-foreground">All Reviews</h2>
+            <ReviewList
+              movieId={movie.id}
+              guestUserId={guestUserId}
+              refreshTrigger={refreshReviews}
+            />
           </div>
         </div>
       </div>
