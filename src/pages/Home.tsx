@@ -95,7 +95,7 @@ const Home = () => {
   };
 
   const handleCategoryClick = (categoryId: string) => {
-    navigate(`/movies?filter=${categoryId}`);
+    navigate(`/filter/${categoryId}`);
   };
 
   return (
